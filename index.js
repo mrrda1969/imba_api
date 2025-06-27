@@ -6,6 +6,7 @@ const logger = require("morgan");
 require("dotenv").config();
 
 const app = express();
+const router = express.Router();
 
 mongoose
   .connect(process.env.MONGODB_URI)
@@ -22,6 +23,12 @@ app.use(logger("dev"));
 
 // seting up routing
 app.use("/auth", require("./routes/auth.routes"));
+app.use(
+  "/",
+  router.get("/", (req, res) => {
+    res.send("Hello there");
+  })
+);
 
 app.listen(process.env.PORT || 5200, () =>
   console.log(`Server listening on post ${process.env.PORT}`)
