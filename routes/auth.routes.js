@@ -1,62 +1,26 @@
-const express = require("express");
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
-const authKey = require("../lib/authKey");
-const passport = require("passport");
+import { body } from "express-validator";
+import { login, signup } from "../controllers/auth.controller.js";
+import express from "express";
 
-const router = express.Router();
+const authRouter = express.Router();
 // sign up
-router.post("/signup", (req, res) => {
-  const data = req.body;
-
-  let user = new User({
-    firstName: data.firstName,
-    lastName: data.lastName,
-    email: data.email,
-    role: data.role,
-    password: data.password,
-  });
-
-  user.save().then(() => {
-    const token = jwt.sign({ _id: user._id }, authKey.jwtSecretKey);
-    res.status(201).json({
-      token: token,
-      user: {
-        first_name: user.firstName,
-        last_name: user.lastName,
-        phone_number: user.phoneNumber,
-        email: user.email,
-        role: user.role,
-      },
-    });
-  });
-});
+authRouter.post(
+  "/signup",
+  [
+    body("first_name").not().isEmpty().withMessage("First name is required"),
+    body("last_name").not().isEmpty().withMessage("Last name is required"),
+    body("email").isEmail(),
+    body("role").isIn(["agent", "client"]),
+    body("password").isLength({ min: 6 }),
+  ],
+  signup
+);
 
 // login
-router.post("/login", (req, res, next) => {
-  const data = req.body;
+authRouter.post(
+  "/login",
+  [body("email").isEmail(), body("password").exists()],
+  login
+);
 
-  passport.authenticate(
-    "local",
-    { session: false },
-    function (err, user, info) {
-      if (err) {
-        return err(next);
-      }
-
-      if (!user) {
-        res.status(401).json(info);
-        return;
-      }
-
-      // token
-      const token = jwt.sign({ _id: user._id }, authKey.jwtSecretKey);
-      res.json({
-        token: token,
-        role: user.role,
-      });
-    }
-  )(req, res, next);
-});
-
-module.exports = router;
+export default authRouter;

@@ -1,9 +1,11 @@
-const express = require("express");
-const mongoose = require("mongoose");
-const bodyParser = require("body-parser");
-const cors = require("cors");
-const logger = require("morgan");
-require("dotenv").config();
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import logger from "morgan";
+import dotenv from "dotenv";
+import authRouter from "./routes/auth.routes.js";
+
+dotenv.config();
 
 const app = express();
 const router = express.Router();
@@ -14,7 +16,6 @@ mongoose
   .catch((error) => console.error(error));
 
 //setting up middleware
-app.use(bodyParser.json());
 app.use(cors());
 app.use(express.json());
 
@@ -22,7 +23,7 @@ app.use(express.json());
 app.use(logger("dev"));
 
 // seting up routing
-app.use("/auth", require("./routes/auth.routes"));
+app.use("/auth", authRouter);
 app.use(
   "/",
   router.get("/", (req, res) => {

@@ -1,14 +1,13 @@
-const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");
+import { Schema as _Schema, model } from "mongoose";
+import { hash as _hash, compare } from "bcrypt";
 
-const Schema = mongoose.Schema;
+const Schema = _Schema;
 
 const User = new Schema({
   firstName: String,
   lastName: String,
   email: String,
   phoneNumber: String,
-  verificationCode: String,
   role: {
     type: String,
     enum: ["agent", "client"],
@@ -24,7 +23,7 @@ User.pre("save", function (next) {
     return next();
   }
 
-  bcrypt.hash(user.password, 10, (err, hash) => {
+  _hash(user.password, 10, (err, hash) => {
     if (err) {
       return next(err);
     }
@@ -33,22 +32,8 @@ User.pre("save", function (next) {
   });
 });
 
-User.methods.login = function (password) {
-  let user = this;
-
-  return new Promise((resolve, reject) => {
-    bcrypt.compare(password, user.password, (err, result) => {
-      if (err) {
-        reject(err);
-      }
-
-      if (result) {
-        resolve();
-      } else {
-        reject();
-      }
-    });
-  });
+User.methods.verifyPassword = async function (password) {
+  return await compare(password, this.password);
 };
 
-module.exports = mongoose.model("User", User);
+export default model("User", User);
