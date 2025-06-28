@@ -7,6 +7,8 @@ const User = new Schema({
   firstName: String,
   lastName: String,
   email: String,
+  phoneNumber: String,
+  verificationCode: String,
   role: {
     type: String,
     enum: ["agent", "client"],
@@ -30,5 +32,23 @@ User.pre("save", function (next) {
     next();
   });
 });
+
+User.methods.login = function (password) {
+  let user = this;
+
+  return new Promise((resolve, reject) => {
+    bcrypt.compare(password, user.password, (err, result) => {
+      if (err) {
+        reject(err);
+      }
+
+      if (result) {
+        resolve();
+      } else {
+        reject();
+      }
+    });
+  });
+};
 
 module.exports = mongoose.model("User", User);
