@@ -1,6 +1,4 @@
-import mongoose, { Model } from "mongoose";
-
-const Schema = mongoose.Schema();
+import { Schema, model } from "mongoose";
 
 const Agency = new Schema(
   {
@@ -36,7 +34,7 @@ const Agency = new Schema(
       default: [],
     },
     parent_agency_id: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "Agency",
       default: null,
     },
@@ -50,4 +48,6 @@ const Agency = new Schema(
   }
 );
 
-export default Model("Agency", Agency);
+Agency.index({ name: 1 });
+
+export default model("Agency", Agency);

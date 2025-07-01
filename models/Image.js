@@ -1,4 +1,4 @@
-import { Model, Schema } from "mongoose";
+import { model, Schema } from "mongoose";
 
 const Image = new Schema(
   {
@@ -20,4 +20,4 @@ const Image = new Schema(
 
 Image.index({ listing_id: 1 });
 
-export default Model("Image", Image);
+export default model("Image", Image);

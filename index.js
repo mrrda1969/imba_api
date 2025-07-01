@@ -4,6 +4,7 @@ import cors from "cors";
 import logger from "morgan";
 import dotenv from "dotenv";
 import authRouter from "./routes/auth.routes.js";
+import apiRouter from "./routes/api.routes.js";
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.use(logger("dev"));
 
 // seting up routing
 app.use("/auth", authRouter);
+app.use("/api", apiRouter);
 app.use(
   "/",
   router.get("/", (req, res) => {
