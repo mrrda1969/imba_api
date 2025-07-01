@@ -1,4 +1,4 @@
-import { Schema, Model } from "mongoose";
+import { Schema, model } from "mongoose";
 
 const Listing = new Schema(
   {
@@ -61,4 +61,4 @@ Listing.virtual("listingImages", {
 /// ensuring serialized fields
 Listing.set("toJSON", { virtuals: true });
 
-export default Model("Listing", Listing);
+export default model("Listing", Listing);
