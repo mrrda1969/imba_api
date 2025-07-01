@@ -1,19 +1,45 @@
-import { Schema as _Schema, model } from "mongoose";
-import { hash as _hash, compare } from "bcrypt";
+import { Schema, model } from "mongoose";
+import { hash, compare } from "bcrypt";
 
-const Schema = _Schema;
-
-const User = new Schema({
-  firstName: String,
-  lastName: String,
-  email: String,
-  phoneNumber: String,
-  role: {
-    type: String,
-    enum: ["agent", "client"],
+const User = new Schema(
+  {
+    firstname: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    lastname: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
+    },
+    phone: {
+      type: String,
+      trim: true,
+    },
+    role: {
+      type: String,
+      required: true,
+      enum: ["admin", "agent", "user"],
+      default: "user",
+    },
+    password: {
+      type: String,
+      required: true,
+      minlength: 6,
+    },
   },
-  password: String,
-});
+  {
+    timestamps: true,
+  }
+);
 
 User.pre("save", function (next) {
   const user = this;
@@ -23,7 +49,7 @@ User.pre("save", function (next) {
     return next();
   }
 
-  _hash(user.password, 10, (err, hash) => {
+  hash(user.password, 10, (err, hash) => {
     if (err) {
       return next(err);
     }
@@ -35,5 +61,15 @@ User.pre("save", function (next) {
 User.methods.verifyPassword = async function (password) {
   return await compare(password, this.password);
 };
+
+User.index({ role: 1 });
+
+// virtual for full name
+User.virtual("fullName").get(function () {
+  return `${this.firstname} ${this.lastname}`;
+});
+
+// ensuring serialized fields
+User.set("toJSON", { virtuals: true });
 
 export default model("User", User);

@@ -3,8 +3,7 @@ import User from "../models/User.js";
 
 export const signup = async (req, res) => {
   try {
-    const { firstName, lastName, email, phoneNumber, role, password } =
-      req.body;
+    const { firstname, lastname, email, phone, role, password } = req.body;
 
     const existingUser = await User.findOne({ email });
 
@@ -13,10 +12,10 @@ export const signup = async (req, res) => {
     }
 
     const user = new User({
-      firstName,
-      lastName,
+      firstname,
+      lastname,
       email,
-      phoneNumber,
+      phone,
       role,
       password,
     });
