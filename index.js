@@ -1,65 +1,70 @@
-import express from "express";
-import mongoose from "mongoose";
-import cors from "cors";
-import logger from "morgan";
-import dotenv from "dotenv";
-import authRouter from "./routes/auth.routes.js";
-import apiRouter from "./routes/api.routes.js";
-
-dotenv.config();
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const logger = require("morgan");
+require("dotenv").config();
 
 const app = express();
-const router = express.Router();
 
-mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => console.log("Connected to cluster"))
-  .catch((error) => console.error(error));
-
-//setting up middleware
-app.use(cors());
+// Middleware
 app.use(express.json());
+app.use(cors());
 
-// logger
+// Import routes
+const authRoutes = require("./routes/auth.routes");
+const userRoutes = require("./routes/user.routes");
+const agencyRoutes = require("./routes/agency.routes");
+const listingRoutes = require("./routes/listing.routes");
+const imageRoutes = require("./routes/image.routes");
+const statsRoutes = require("./routes/stats.routes");
+
+// Import error middleware
+const { notFound, errorHandler } = require("./middleware/error.middleware");
+
+// use logger
 app.use(logger("dev"));
 
-// seting up routing
-app.use("/auth", authRouter);
-app.use("/api", apiRouter);
-app.use(
-  "/",
-  router.get("/", (req, res) => {
-    res.send("Hello there");
-  })
-);
+// Mount routes
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/agencies", agencyRoutes);
+app.use("/api/listings", listingRoutes);
+app.use("/api", imageRoutes); // image routes use /listings/:listingId/images and /images/:id
+app.use("/api", statsRoutes); // stats and dashboard-stats
 
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ message: "Route not found" });
-});
+// Error handling
+app.use(notFound);
+app.use(errorHandler);
 
-// Global error handler
-app.use((error, req, res, next) => {
-  console.error(error.stack);
+// =======================
+// SERVER SETUP
+// =======================
 
-  if (error.name === "ValidationError") {
-    return res.status(400).json({
-      message: "Validation Error",
-      errors: Object.values(error.errors).map((e) => e.message),
+const PORT = process.env.PORT || 5300;
+const MONGODB_URI = process.env.MONGODB_URI;
+
+mongoose
+  .connect(MONGODB_URI)
+  .then(() => {
+    console.log("Connected to MongoDB");
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+      console.log("\n=== API Endpoints ===");
+      console.log("Authentication:");
+      console.log("POST /api/auth/register - Register new user");
+      console.log("POST /api/auth/login - Login user");
+      console.log("GET /api/auth/profile - Get current user profile");
+      console.log("PUT /api/auth/profile - Update profile");
+      console.log("PUT /api/auth/change-password - Change password");
+      console.log("POST /api/auth/refresh - Refresh token");
+      console.log("POST /api/auth/logout - Logout");
+      console.log("\nProtected Routes (require authentication):");
+      console.log("Users (admin only), Agencies, Listings, Images");
+      console.log("See code for complete endpoint documentation");
     });
-  }
+  })
+  .catch((error) => {
+    console.error("MongoDB connection error:", error);
+  });
 
-  if (error.name === "CastError") {
-    return res.status(400).json({ message: "Invalid ID format" });
-  }
-
-  if (error.code === 11000) {
-    return res.status(400).json({ message: "Duplicate field value" });
-  }
-
-  res.status(500).json({ message: "Internal server error" });
-});
-
-app.listen(process.env.PORT || 5200, () =>
-  console.log(`Server listening on post ${process.env.PORT}`)
-);
+module.exports = app;

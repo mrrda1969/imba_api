@@ -1,14 +1,11 @@
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = process.env.JWT_SECRET || "a_good_man_is_hard_to_find";
-
-// Generate JWT token
-export const generateToken = (userId) => {
-  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: "7d" });
-};
+// Auth middleware
+const { User, Listing } = require("../models/api.models");
+const jwt = require("jsonwebtoken");
+const JWT_SECRET =
+  process.env.JWT_SECRET || "your-secret-key-change-in-production";
 
 // Verify JWT token
-export const authenticateToken = async (req, res, next) => {
+const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1]; // Bearer TOKEN
 
@@ -32,7 +29,7 @@ export const authenticateToken = async (req, res, next) => {
 };
 
 // Role-based authorization
-export const authorizeRoles = (...roles) => {
+const authorizeRoles = (...roles) => {
   return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({ message: "Authentication required" });
@@ -49,7 +46,7 @@ export const authorizeRoles = (...roles) => {
 };
 
 // Check if user owns resource or is admin
-export const authorizeOwnerOrAdmin = (resourceField = "listing_agent") => {
+const authorizeOwnerOrAdmin = (resourceField = "listing_agent") => {
   return async (req, res, next) => {
     try {
       if (req.user.role === "admin") {
@@ -84,4 +81,10 @@ export const authorizeOwnerOrAdmin = (resourceField = "listing_agent") => {
       return res.status(500).json({ message: "Authorization error" });
     }
   };
+};
+
+module.exports = {
+  authenticateToken,
+  authorizeRoles,
+  authorizeOwnerOrAdmin,
 };
