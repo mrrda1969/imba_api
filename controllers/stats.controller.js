@@ -1,5 +1,9 @@
 import express from "express";
 import { asyncHandler } from "../lib/utils/async.handler.js";
+import {
+  authenticateToken,
+  authorizeRoles,
+} from "../middleware/auth.middleware.js";
 
 const statsRouter = express.Router();
 

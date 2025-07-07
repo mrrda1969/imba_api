@@ -1,26 +1,96 @@
-import { body } from "express-validator";
-import { login, signup } from "../controllers/auth.controller.js";
 import express from "express";
+import bcrypt from "bcrypt";
+import { asyncHandler } from "../lib/utils/async.handler.js";
+import { generateToken } from "../middleware/auth.middleware.js";
+import User from "../models/User.js";
 
 const authRouter = express.Router();
-// sign up
+
+// Register new user
 authRouter.post(
   "/signup",
-  [
-    body("first_name").not().isEmpty().withMessage("First name is required"),
-    body("last_name").not().isEmpty().withMessage("Last name is required"),
-    body("email").isEmail(),
-    body("role").isIn(["agent", "client"]),
-    body("password").isLength({ min: 6 }),
-  ],
-  signup
+  asyncHandler(async (req, res) => {
+    const {
+      firstname,
+      lastname,
+      email,
+      password,
+      phone,
+      role = "user",
+    } = req.body;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ message: "User already exists with this email" });
+    }
+
+    // Create user
+    const user = new User({
+      firstname,
+      lastname,
+      email,
+      password,
+      phone,
+      role,
+    });
+
+    await user.save();
+
+    // Generate token
+    const token = generateToken(user._id);
+
+    res.status(201).json({
+      message: "User registered successfully",
+      token,
+      user: {
+        id: user._id,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+      },
+    });
+  })
 );
 
-// login
+// Login user
 authRouter.post(
   "/login",
-  [body("email").isEmail(), body("password").exists()],
-  login
+  asyncHandler(async (req, res) => {
+    const { email, password } = req.body;
+
+    // Find user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // Check password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // Generate token
+    const token = generateToken(user._id);
+
+    res.json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user._id,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+      },
+    });
+  })
 );
 
 export default authRouter;

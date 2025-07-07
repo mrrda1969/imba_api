@@ -1,70 +1,99 @@
 import generateToken from "../lib/jwt.auth.js";
+import express from "express";
+import bcrypt from "bcrypt";
+import { asyncHandler } from "../lib/utils/async.handler.js";
 import User from "../models/User.js";
 
-export const signup = async (req, res) => {
-  try {
-    const { firstname, lastname, email, phone, role, password } = req.body;
+const authRouter = express.Router();
 
+// Register new user
+authRouter.post(
+  "/register",
+  asyncHandler(async (req, res) => {
+    const {
+      firstname,
+      lastname,
+      email,
+      password,
+      phone,
+      role = "user",
+    } = req.body;
+
+    // Check if user already exists
     const existingUser = await User.findOne({ email });
-
     if (existingUser) {
-      return res.status(409).json({ message: "User already exists" });
+      return res
+        .status(400)
+        .json({ message: "User already exists with this email" });
     }
 
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create user
     const user = new User({
       firstname,
       lastname,
       email,
+      password: hashedPassword,
       phone,
       role,
-      password,
     });
 
-    await user
-      .save()
-      .then(() => {
-        const token = generateToken(user._id);
+    await user.save();
 
-        res.status(201).json({
-          token: token,
-          message: "User created successfully",
-        });
-      })
-      .catch((err) => {
-        res.json({ message: err.message });
-      });
-  } catch (error) {
-    res.json({
-      message: error.message,
-    });
-  }
-};
-
-export const login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    const isMatch = user.verifyPassword(password);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Password is incorrect" });
-    }
-
+    // Generate token
     const token = generateToken(user._id);
 
-    res.json({
-      token: token,
-      info: {
+    res.status(201).json({
+      message: "User registered successfully",
+      token,
+      user: {
+        id: user._id,
+        firstname: user.firstname,
+        lastname: user.lastname,
         email: user.email,
+        phone: user.phone,
         role: user.role,
       },
     });
-  } catch (err) {
-    res.json({ message: err.message });
-  }
-};
+  })
+);
+
+// Login user
+authRouter.post(
+  "/login",
+  asyncHandler(async (req, res) => {
+    const { email, password } = req.body;
+
+    // Find user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // Check password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    // Generate token
+    const token = generateToken(user._id);
+
+    res.json({
+      message: "Login successful",
+      token,
+      user: {
+        id: user._id,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+      },
+    });
+  })
+);
+
+export default authRouter;
