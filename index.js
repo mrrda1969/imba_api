@@ -2,7 +2,9 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const logger = require("morgan");
+const swaggerUi = require("swagger-ui-express");
 require("dotenv").config();
+const swaggerSpec = require("./swaggerOptions");
 
 const app = express();
 
@@ -31,6 +33,9 @@ app.use("/api/agencies", agencyRoutes);
 app.use("/api/listings", listingRoutes);
 app.use("/api", imageRoutes);
 app.use("/api", statsRoutes);
+
+// Swagger setup
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Error handling
 app.use(notFound);
