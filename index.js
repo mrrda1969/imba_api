@@ -29,8 +29,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/agencies", agencyRoutes);
 app.use("/api/listings", listingRoutes);
-app.use("/api", imageRoutes); // image routes use /listings/:listingId/images and /images/:id
-app.use("/api", statsRoutes); // stats and dashboard-stats
+app.use("/api", imageRoutes);
+app.use("/api", statsRoutes);
 
 // Error handling
 app.use(notFound);
@@ -49,18 +49,6 @@ mongoose
     console.log("Connected to MongoDB");
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
-      console.log("\n=== API Endpoints ===");
-      console.log("Authentication:");
-      console.log("POST /api/auth/register - Register new user");
-      console.log("POST /api/auth/login - Login user");
-      console.log("GET /api/auth/profile - Get current user profile");
-      console.log("PUT /api/auth/profile - Update profile");
-      console.log("PUT /api/auth/change-password - Change password");
-      console.log("POST /api/auth/refresh - Refresh token");
-      console.log("POST /api/auth/logout - Logout");
-      console.log("\nProtected Routes (require authentication):");
-      console.log("Users (admin only), Agencies, Listings, Images");
-      console.log("See code for complete endpoint documentation");
     });
   })
   .catch((error) => {

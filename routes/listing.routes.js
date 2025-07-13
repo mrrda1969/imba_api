@@ -1,4 +1,3 @@
-// Listing routes placeholder
 const express = require("express");
 const router = express.Router();
 const listingController = require("../controllers/listing.controller");
