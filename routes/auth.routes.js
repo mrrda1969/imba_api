@@ -50,7 +50,7 @@ router.post("/login", asyncHandler(authController.login));
  * /api/auth/profile:
  *   get:
  *     summary: Get logged-in user profile
- *     tags: [Auth Profile]
+ *     tags: [Authentication]
  *     security:
  *       - bearerAuth: []
  *     responses:
@@ -65,7 +65,7 @@ router.get("/profile", authenticateToken, authController.getProfile);
  * /api/auth/profile:
  *   put:
  *     summary: Update logged-in user profile
- *     tags: [Auth Profile]
+ *     tags: [Authentication]
  *     security:
  *       - bearerAuth: []
  *     requestBody:

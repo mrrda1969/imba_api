@@ -33,8 +33,70 @@ router.get("/", authenticateToken, asyncHandler(userController.getAllUsers));
  *         type: string
  */
 router.get("/:id", authenticateToken, asyncHandler(userController.getUserById));
+/**
+ * @swagger
+ * /api/users:
+ *  post:
+ *   tags: [Users]
+ *   summary: Create a new user
+ *   description: Create a new user in the system. Only accessible by admin.
+ *   requestBody:
+ *    required: true
+ *    content:
+ *     application/json:
+ *      schema:
+ *       type: object
+ *      properties:
+ *       firstname:
+ *        type: string
+ *       lastname:
+ *        type: string
+ *       email:
+ *        type: string
+ *       password:
+ *        type: string
+ *       phone:
+ *        type: string
+ *       role:
+ *        type: string
+ *        enum: [user, agent, admin]
+ *
+ */
 router.post("/", authenticateToken, asyncHandler(userController.createUser));
+
+/**
+ * @swagger
+ * /api/users/{id}:
+ *  put:
+ *   tags: [Users]
+ *   summary: Update a user by ID
+ *   description: Update user details by their unique ID. Only accessible by admin.
+ *   requestBody:
+ *    required: true
+ *    content:
+ *     application/json:
+ *      schema:
+ *       type: object
+ *      properties:
+ *       firstname:
+ *        type: string
+ *       lastname:
+ *        type: string
+ *       email:
+ *        type: string
+ *       phone:
+ *        type: string
+ */
 router.put("/:id", authenticateToken, asyncHandler(userController.updateUser));
+
+/**
+ * @swagger
+ * /api/users/{id}:
+ *  delete:
+ *   tags: [Users]
+ *   summary: Delete a user by ID
+ *   description: Delete a user from the system by their unique ID. Only accessible by admin.
+ */
 router.delete(
   "/:id",
   authenticateToken,
